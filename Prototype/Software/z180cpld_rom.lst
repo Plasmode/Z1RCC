@@ -1,0 +1,97 @@
+Zilog Macro Assembler.  Version K2.14    19-Oct-123    21:33:34    Page:    1
+
+
+c:\zds_proj\z1rcc\z180cpld_rom.asm
+
+Location Object              Type  Line Source
+                             A        1 ;10/18/23
+                             A        2 ;ROM inside EPM7064S CPLD, based on ZRCC CPLD ROM
+                             A        3 ; two sections of code:
+                             A        4 ;   serial bootstrap is 18 bytes, strapped to high ROM
+                             A        5 ;   CF bootstrap is 28 bytes, strapped to low ROM
+                             A        6 ; CF is in native 16 bit mode
+                             A        7 ; only the low byte of CF master boot record contains meaningful program
+                             A        8 ; read data from master boot sector
+                             A        9 ;   execute the program in master boot sector to load more program
+                             A       10 ;Z180 registers
+                   000000C0  A       11 CNTLA0	equ 0c0h		;Z180 ASCI control reg A0
+                   000000C2  A       12 CNTLB0	equ 0c2h		;Z180 ASCI Control reg B0
+                   000000C8  A       13 RxData  	equ 0c8h        	; Z180 Chan 0 receive register
+                   000000C6  A       14 TxData  	equ 0c6h        	; Z180 Chan 0 transmit register
+                   000000C4  A       15 RxStat  	equ 0c4h       	; Z180 Chan 0 receiver status/control register
+                   000000F8  A       16 CBR	equ 0f8h		;MMU common base register
+                   000000FA  A       17 CBAR	equ 0fah		;MMU common/bank area reg
+                   0000003F  A       18 ICR	equ 3Fh		; I/O control register
+                             A       19 
+                             A       20 
+                   00000010  A       21 CFdata   	equ 010h    	;CF data register
+                   00000011  A       22 CFerr    	equ 011h    	;CF error reg
+                   00000012  A       23 CFsectcnt equ 012h    	;CF sector count reg
+                   00000013  A       24 CF07     	equ 013h   	;CF LA0-7
+                   00000014  A       25 CF815    	equ 014h       	;CF LA8-15
+                   00000015  A       26 CF1623   	equ 015h       	;CF LA16-23
+                   00000016  A       27 CF2427   	equ 016h       	;CF LA24-27
+                   00000017  A       28 CFstat   	equ 017h       	;CF status/command reg
+                             A       29 
+                             A       30 	org 0
+00000000 3E C0               A       31 	ld a,0c0h
+00000002 ED 39 3F            A       32 	out0 (ICR),a	;relocate I/O register to 0xC0
+00000005 21 00 A0            A       33 	ld hl,0a000h	;bootstrap code starts from 0xa000
+00000008 3E 64               A       34 	ld a,64h		;transmit, receive enable, 8-bit 1 stop
+0000000A ED 39 C0            A       35 	out0 (CNTLA0),a
+0000000D AF                  A       36 	xor a
+                             A       37 ; note: since regA is 0, out (CNTLB0),a also workd, save a byte
+0000000E ED 39 C2            A       38 	out0 (CNTLB0),a	;divided by 160, 57600 with 18.4MHz clock
+                             A       39 ; examine the serial data ready flag and CF busy flag to decide which device to bootstrap from.
+00000011                     A       40 readbsy:
+00000011 ED 38 C4            A       41 	in0 a,(RxStat)	;read serial port data ready flag
+00000014 E6 80               A       42 	and 080h		;rla also work, save a byte		
+00000016 20 16               A       43 	jr nz,serboot	;if serial data ready, do serial bootstrap
+00000018 DB 17               A       44 	in a,(CFstat)	; read CF status 
+0000001A 17                  A       45 	rla		; roll busy bit into carry
+0000001B 38 F4               A       46 	jr c,readbsy
+0000001D 0E 10               A       47 	ld c,CFdata	; reg C points to CF data reg
+0000001F 3E 20               A       48 	ld a,20h		; read sector command
+00000021 D3 17               A       49 	out (CFstat),a	; issue the read sector command
+00000023                     A       50 chkdrq:
+00000023 DB 17               A       51 	in a,(CFstat)	; check data request bit set before write CF data
+00000025 E6 08               A       52 	and 8		; bit 3 is DRQ, wait for it to set
+00000027 28 FA               A       53 	jr z,chkdrq
+                             A       54 
+00000029 ED B2               A       55 	inir		;z80 read 256 bytes
+0000002B 25                  A       56 	dec h
+0000002C E9                  A       57 	jp (hl)		;same as jp 0a000h
+                             A       58 
+Zilog Macro Assembler.  Version K2.14    19-Oct-123    21:33:34    Page:    2
+
+
+c:\zds_proj\z1rcc\z180cpld_rom.asm
+
+Location Object              Type  Line Source
+                             A       59 	
+                             A       60 	org 2eh
+                             A       61 ;put this code in high ROM
+0000002E                     A       62 serboot:
+                             A       63 ;boot strap from the serial port
+0000002E ED 38 C8            A       64 	in0 a,(RxData)	;discard first character read
+00000031                     A       65 serboot1:
+00000031 ED 38 C4            A       66 	in0 a,(RxStat)	;read status
+00000034 E6 80               A       67 	and 080h		;data ready flag is in D[0]; rla also work, save a byte
+00000036 28 F9               A       68 	jr z,serboot1
+00000038                     A       69 getser:
+00000038 ED 38 C8            A       70 	in0 a,(RxData)	;read data
+0000003B 77                  A       71 	ld (hl),a		;save program
+0000003C 2C                  A       72 	inc l
+0000003D 20 F2               A       73 	jr nz,serboot1	;read 256 bytes
+0000003F E9                  A       74 	jp (hl)		;same as jp 0a000h
+                             A       75 
+                             A       76 	end
+                             A       77 
+Zilog Macro Assembler.  Version K2.14    19-Oct-123    21:33:34    Page:    3
+
+
+c:\zds_proj\z1rcc\z180cpld_rom.asm
+
+
+    0 Warnings
+    0 Errors
