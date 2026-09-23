@@ -32,13 +32,11 @@ Because it takes a moment (0.5-1 second) for the CF disk to be ready after reset
 The prototype starts with the RIZ180 rev1 pc board because most of the wiring between Z180, RAM, CF disk, and logic are already in place. It is fairly easy to wire CPLD's signals to the vacated ROM and glue logic.
 
 Z1RCC prototype construction aid, 
+
 ![layout of CPLD](z1rcc_prototype_layout.jpg)
 
 ## Software
-- Z1RCC Monitor, rev 0.2a
-
-- Z1RCC serial loader, first load this file as binary in serial bootstrapping mode. This is a Intel Hex loader.
-
-- Z1RCC CPLD bootstrap ROM, 64-byte ROM resided in CPLD executed by Z180 immediately after reset
-
-- Interim RomWBW CF image, use Win32DiskImager to copy this image file to a new CF disk. This image has patch to run serial port at 57.6K because the auto-baud function failed due to excessive drift of RTC.
+- [Z1RCC Monitor](Software/z1rcc_monitor_0.2a_released.zip), rev 0.2a
+- Z1RCC [serial loader](Software/z1rcc_serloader_v0_2.zip), first load this file as binary in serial bootstrapping mode. This is a Intel Hex loader.
+- Z1RCC CPLD bootstrap ROM, [64-byte ROM resided inside CPLD](Software/z180cpld_rom.lst) executed by Z180 immediately after reset
+- Interim [RomWBW CF image](Software/romwbw_patched_hd1k_z1rcc_combo.zip), use Win32DiskImager to copy this image file to a new CF disk. This image has patch to run serial port at 57.6K because the auto-baud function failed due to excessive drift of RTC.
