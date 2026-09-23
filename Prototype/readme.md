@@ -1,6 +1,6 @@
 # Prototype Z1RCC, A RC2014-Compatible, RomWBW-Capable Z180 SBC
 ## Introduction
-The motivation for Z1RCC came from a new RomWBW feature that accommodates ROM-less Z80/Z180/Z280 computer with 512K of RAM. Z180 in DIP64 package does not have Address 19 bonded out so it can only have 512K memory, so the new RomWBW feature can work with DIP64 Z180, assuming there is a mechanism to preload the 512K with RomWBW image. This concept is prototyped with RIZ180 rev1 pc board which already had Z180, RAM, and CF wired. All it needed is a CPLD with appropriate logic to decode RAM, CF and small ROM to load RomWBW program from CF disk to RAM. This link to discussion about Z1RCC.
+The motivation for Z1RCC came from a new RomWBW feature that accommodates ROM-less Z80/Z180/Z280 computer with 512K of RAM. Z180 in DIP64 package does not have Address 19 bonded out so it can only have 512K memory, so the new RomWBW feature can work with DIP64 Z180, assuming there is a mechanism to preload the 512K with RomWBW image. This concept is prototyped with RIZ180 rev1 pc board which already had Z180, RAM, and CF wired. All it needed is a CPLD with appropriate logic to decode RAM, CF and small ROM to load RomWBW program from CF disk to RAM. This link to [discussion about Z1RCC](https://www.retrobrewcomputers.org/forum/index.php?t=msg&th=770&start=0&).
 
 ![protoTop](Z1RCC_prototype_topview.jpg)
 ## Features
@@ -23,15 +23,16 @@ If CF BUSY is negated, it jumps into the CF bootstrap routine that reads the 256
 Because it takes a moment (0.5-1 second) for the CF disk to be ready after reset, the user can select CF bootstrap by waiting a second for the CF disk to be ready and boot or serial bootstrap by sending a character to serial port immediately after the reset button is released. The serial bootstrap is primarily for loading CF initialization software to set up a new CF disk.
 
 ## Design Information
-- Schematic
-- CPLD design file
-  - PDF of CPLD top level schematic
+- [Schematic](z1rccproto_scm.pdf)
+- [CPLD design](cpld_z1rcc_prototype.zip) file
+  - CPLD top level [schematic in PDF format](cpld_top_scm.pdf)
   - Bootstrap ROM inside CPLD
 
 ### Prototype modifications
 The prototype starts with the RIZ180 rev1 pc board because most of the wiring between Z180, RAM, CF disk, and logic are already in place. It is fairly easy to wire CPLD's signals to the vacated ROM and glue logic.
 
-Z1RCC prototype construction aid, layout of CPLD
+Z1RCC prototype construction aid, 
+![layout of CPLD](z1rcc_prototype_layout.jpg)
 
 ## Software
 - Z1RCC Monitor, rev 0.2a
